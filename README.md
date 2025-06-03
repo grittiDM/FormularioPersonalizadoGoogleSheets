@@ -21,7 +21,7 @@ ___
 <!-- Corpo do README -->
 ## Descrição
 
-Este projeto implementa um formulário HTML personalizado que envia dados diretamente para uma planilha do Google Sheets. Ele utiliza Google Apps Script para a lógica do backend (recebimento e processamento dos dados do formulário) e HTML/CSS/JavaScript para a interface do usuário do formulário.
+Este é um projeto feito sob demanda para uma construtora e terraplanagem e implementa um formulário HTML personalizado que envia dados diretamente para uma planilha do Google Sheets. Ele utiliza Google Apps Script para a lógica do backend (recebimento e processamento dos dados do formulário) e HTML/CSS/JavaScript para a interface do usuário do formulário.
 
 O objetivo é fornecer uma alternativa mais flexível e visualmente customizável aos formulários padrão do Google Forms, permitindo uma integração direta com o Google Sheets para coleta e gerenciamento de dados.
 
