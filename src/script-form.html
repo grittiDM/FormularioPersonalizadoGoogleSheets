@@ -1,0 +1,385 @@
+<script>
+    // Variáveis de estado global
+    let listaItens = [];
+    let allObrasData = {};
+    let initialServerData = {}; // Para armazenar toda a resposta do loadFormData
+
+    // Cache de Elementos DOM (inicializados em DOMContentLoaded)
+    let form, container, tipoRegistroSelect, contratoContainer, confirmacaoDevolucao,
+        confirmacaoCheckbox, numeroObraSelect, nomeObraInput, enderecoSelect,
+        fornecedorSelect, cnpjInput, conferenteInput, mensagemDiv, enviarButton,
+        novoEnvioButton, clearObraButton, clearFornecedorButton, addItemButton,
+        removeAllItemsButton;
+
+    // FUNÇÕES UTILITÁRIAS
+    /**
+     * Popula um elemento select com opções de um array.
+     * @param {HTMLSelectElement} selectElement O elemento select a ser populado.
+     * @param {Array<string|Object>} optionsArray O array de opções.
+     * @param {string} defaultOptionText Texto para a opção padrão "Selecione...".
+     * @param {string} [valueKey] Se optionsArray contiver objetos, a chave para o valor da opção.
+     * @param {string} [textKey] Se optionsArray contiver objetos, a chave para o texto da opção.
+     */
+    function populateSelect(selectElement, optionsArray, defaultOptionText, valueKey, textKey) {
+        selectElement.innerHTML = ''; // Limpa opções existentes
+        const defaultOption = document.createElement('option');
+        defaultOption.value = '';
+        defaultOption.textContent = defaultOptionText;
+        selectElement.appendChild(defaultOption);
+
+        (optionsArray || []).forEach(item => { // Garante que optionsArray não seja null/undefined
+            const option = document.createElement('option');
+            option.value = valueKey ? item[valueKey] : item;
+            option.textContent = textKey ? item[textKey] : item;
+            selectElement.appendChild(option);
+        });
+    }
+
+    /**
+     * Popula um elemento select com opções de um objeto.
+     * @param {HTMLSelectElement} selectElement O elemento select a ser populado.
+     * @param {Object} dataObject O objeto cujas chaves serão os valores das opções.
+     * @param {string} defaultOptionText Texto para a opção padrão "Selecione...".
+     * @param {string|null} [textProperty] Se fornecido, o texto da opção será dataObject[key][textProperty]. Caso contrário, a chave é usada como texto.
+     */
+    function populateSelectFromObject(selectElement, dataObject, defaultOptionText, textProperty = null) {
+        selectElement.innerHTML = '';
+        const defaultOption = document.createElement('option');
+        defaultOption.value = '';
+        defaultOption.textContent = defaultOptionText;
+        selectElement.appendChild(defaultOption);
+
+        for (const key in (dataObject || {})) { // Garante que dataObject não seja null/undefined
+            if (Object.prototype.hasOwnProperty.call(dataObject, key)) {
+                const option = document.createElement('option');
+                option.value = key; // O valor é sempre a chave
+                option.textContent = textProperty ? dataObject[key][textProperty] : key;
+                selectElement.appendChild(option);
+            }
+        }
+    }
+
+    // FUNÇÕES DE GERENCIAMENTO DE ITENS
+    function updateItemNumbers() {
+        const itemDivs = container.querySelectorAll('.item'); // Usa o container cacheado
+        itemDivs.forEach((div, index) => {
+            const h4 = div.querySelector('h4');
+            if (h4) {
+                h4.textContent = `Item ${index + 1}`;
+            }
+        });
+    }
+
+    /**
+     * Cria um botão de ajuste de quantidade.
+     * @param {number} value O valor do ajuste.
+     * @param {string} text O texto do botão.
+     * @param {HTMLElement} parent O elemento pai onde o botão será adicionado.
+     */
+    function createAdjustButton(value, text, parent) {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'adjust';
+        btn.dataset.value = String(value); // dataset values are strings
+        btn.textContent = text;
+        parent.appendChild(btn);
+    }
+
+    function createItemElement() {
+        const itemDiv = document.createElement("div");
+        itemDiv.className = "item";
+
+        const h4 = document.createElement('h4'); // Numerado por updateItemNumbers
+
+        const itemLabel = document.createElement('label');
+        itemLabel.textContent = 'Item:';
+        const itemSelect = document.createElement('select');
+        itemSelect.name = 'item';
+        itemSelect.required = true;
+        populateSelect(itemSelect, listaItens, "Selecione um item"); // Usa listaItens global
+
+        const quantidadeLabel = document.createElement('label');
+        quantidadeLabel.textContent = 'Quantidade:';
+
+        const quantityControlsDiv = document.createElement('div');
+        quantityControlsDiv.className = 'quantity-controls'; // Classe adicionada
+        // Estilos como display:flex, align-items, gap serão movidos para o CSS
+        // quantityControlsDiv.style.display = 'flex';
+        // quantityControlsDiv.style.alignItems = 'center';
+        // quantityControlsDiv.style.gap = '5px';
+
+        createAdjustButton(-10, "-10", quantityControlsDiv);
+        createAdjustButton(-1, "-1", quantityControlsDiv);
+
+        const qtyInput = document.createElement('input');
+        qtyInput.type = 'number';
+        qtyInput.name = 'quantidade';
+        qtyInput.value = '0';
+        qtyInput.min = '0';
+        qtyInput.required = true;
+        quantityControlsDiv.appendChild(qtyInput);
+
+        createAdjustButton(1, "+1", quantityControlsDiv);
+        createAdjustButton(10, "+10", quantityControlsDiv);
+
+        const removeItemButtonElement = document.createElement('button');
+        removeItemButtonElement.type = 'button';
+        removeItemButtonElement.className = 'remove-item';
+        removeItemButtonElement.textContent = 'Remover item';
+
+        itemDiv.appendChild(h4);
+        itemDiv.appendChild(itemLabel);
+        itemDiv.appendChild(itemSelect);
+        itemDiv.appendChild(quantidadeLabel);
+        itemDiv.appendChild(quantityControlsDiv);
+        itemDiv.appendChild(removeItemButtonElement);
+
+        return itemDiv;
+    }
+
+    function addItem() {
+        const newItemElement = createItemElement();
+        container.appendChild(newItemElement);
+        updateItemNumbers();
+    }
+
+    function removeItem(buttonElement) {
+        const itemToRemove = buttonElement.closest('.item');
+        if (itemToRemove) {
+            itemToRemove.remove(); // Método mais moderno para remover o elemento
+            updateItemNumbers();
+            if (container.children.length === 0) {
+                addItem(); // Garante que sempre haja pelo menos um item
+            }
+        }
+    }
+
+    function removeAllItems() {
+        container.innerHTML = '';
+        addItem();
+    }
+
+    function adjustQuantidade(buttonElement, value) {
+        const input = buttonElement.parentElement.querySelector('input[name="quantidade"]');
+        if (input) {
+            let current = parseInt(input.value, 10) || 0;
+            input.value = Math.max(0, current + value); // Garante que não seja negativo
+        }
+    }
+
+    // FUNÇÕES DE ATUALIZAÇÃO DE CAMPOS DO FORMULÁRIO
+    function handleTipoRegistroChange() {
+        const tipoRegistro = tipoRegistroSelect.value;
+        const selectedObraNumero = numeroObraSelect.value;
+        const obraData = allObrasData[selectedObraNumero];
+        const obraContratos = obraData?.contratos || [];
+
+        contratoContainer.innerHTML = ''; // Clear previous content
+
+        confirmacaoDevolucao.style.display = (tipoRegistro === 'Devolução') ? 'flex' : 'none';
+        if (tipoRegistro !== 'Devolução') {
+            confirmacaoCheckbox.checked = false;
+        }
+
+        if (!tipoRegistro) return; // Se nenhum tipo de registro selecionado, campo de contrato permanece vazio
+
+        const label = document.createElement('label');
+        label.textContent = 'Contrato:';
+        contratoContainer.appendChild(label);
+
+        if (tipoRegistro === 'Renovação' || tipoRegistro === 'Devolução') {
+            const select = document.createElement('select');
+            select.id = 'contrato'; // Manter ID se necessário para outros scripts, embora não seja usado internamente aqui
+            select.name = 'contrato';
+            select.required = true;
+            populateSelect(select, obraContratos, 'Selecione um Contrato');
+            contratoContainer.appendChild(select);
+        } else if (tipoRegistro === 'Recebimento') {
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.id = 'contrato';
+            input.name = 'contrato';
+            input.placeholder = 'Digite o Contrato';
+            input.required = true;
+            contratoContainer.appendChild(input);
+        }
+    }
+
+    function clearObraInfo() {
+        numeroObraSelect.value = '';
+        nomeObraInput.value = '';
+        populateSelect(enderecoSelect, [], "Selecione o Endereço"); // Limpa e define opção padrão
+        handleTipoRegistroChange(); // O contrato pode depender da obra
+    }
+
+    function clearFornecedorInfo() {
+        fornecedorSelect.value = '';
+        cnpjInput.value = '';
+        tipoRegistroSelect.value = '';
+        confirmacaoCheckbox.checked = false;
+        handleTipoRegistroChange(); // Garante que o campo Contrato seja atualizado
+    }
+
+    function resetForm() {
+        clearObraInfo();
+        clearFornecedorInfo();
+        conferenteInput.value = '';
+        container.innerHTML = ''; // Limpa todos os itens
+        addItem(); // Adiciona um item inicial
+
+        mensagemDiv.innerText = '';
+        enviarButton.classList.remove("hidden");
+        enviarButton.disabled = false;
+        novoEnvioButton.classList.add("hidden");
+    }
+
+    // EVENT HANDLERS & SETUP
+    function handleFormSubmit(event) {
+        event.preventDefault();
+
+        const itens = Array.from(container.querySelectorAll('.item')).map(div => ({
+            item: div.querySelector('[name="item"]').value,
+            quantidade: div.querySelector('[name="quantidade"]').value
+        }));
+
+        // Seletor mais robusto para o elemento de contrato
+        const contratoElement = contratoContainer.querySelector('[name="contrato"]');
+
+        const dados = {
+            numeroObra: numeroObraSelect.value,
+            nomeObra: nomeObraInput.value,
+            endereco: enderecoSelect.value,
+            fornecedor: fornecedorSelect.value,
+            tipoRegistro: tipoRegistroSelect.value,
+            contrato: contratoElement ? contratoElement.value : '',
+            conferente: conferenteInput.value,
+            devolucaoFinal: confirmacaoCheckbox.checked,
+            itens
+        };
+
+        // Exemplo de validação básica no cliente
+        if (!dados.numeroObra || !dados.fornecedor || !dados.tipoRegistro || !dados.conferente) {
+            alert("Por favor, preencha todos os campos obrigatórios da obra, fornecedor, tipo de registro e conferente.");
+            return;
+        }
+        if (itens.some(item => !item.item || parseInt(item.quantidade, 10) <= 0)) {
+            alert("Por favor, selecione um item e insira uma quantidade válida (maior que zero) para todos os itens adicionados.");
+            return;
+        }
+
+        enviarButton.disabled = true;
+        mensagemDiv.innerText = "Enviando dados...";
+
+        google.script.run
+            .withSuccessHandler(msg => {
+                mensagemDiv.innerText = msg;
+                enviarButton.classList.add("hidden");
+                novoEnvioButton.classList.remove("hidden");
+                // Não é necessário reabilitar o enviarButton aqui, pois ele está oculto
+            })
+            .withFailureHandler(err => {
+                console.error("Erro ao enviar formulário:", err);
+                const errorMessage = "Erro ao enviar: " + (err.message || "Ocorreu um erro desconhecido.");
+                mensagemDiv.innerText = errorMessage;
+                alert(errorMessage);
+                enviarButton.disabled = false; // Reabilita em caso de falha
+            })
+            .submitData(dados);
+    }
+
+    function setupEventListeners() {
+        form.addEventListener("submit", handleFormSubmit);
+        novoEnvioButton.addEventListener("click", resetForm);
+        clearObraButton.addEventListener("click", clearObraInfo);
+        clearFornecedorButton.addEventListener("click", clearFornecedorInfo);
+        addItemButton.addEventListener("click", addItem);
+        removeAllItemsButton.addEventListener("click", removeAllItems);
+        tipoRegistroSelect.addEventListener("change", handleTipoRegistroChange);
+
+        numeroObraSelect.addEventListener("change", () => {
+            const selectedObraNumero = numeroObraSelect.value;
+            const obra = allObrasData[selectedObraNumero];
+            nomeObraInput.value = obra?.nome || "";
+            populateSelect(enderecoSelect, obra?.enderecos || [], "Selecione o Endereço");
+            handleTipoRegistroChange(); // Atualiza campo de contrato
+        });
+
+        fornecedorSelect.addEventListener("change", () => {
+            const selectedFornecedorNome = fornecedorSelect.value;
+            const fornecedorData = initialServerData.fornecedores || {};
+            cnpjInput.value = fornecedorData[selectedFornecedorNome]?.cnpj || "";
+        });
+
+        container.addEventListener('click', function (event) {
+            const target = event.target;
+            if (target.classList.contains('adjust') && target.tagName === 'BUTTON') {
+                const value = parseInt(target.dataset.value, 10);
+                if (!isNaN(value)) {
+                    adjustQuantidade(target, value);
+                }
+            } else if (target.classList.contains('remove-item') && target.tagName === 'BUTTON') {
+                removeItem(target);
+            }
+        });
+    }
+
+    // INICIALIZAÇÃO
+    document.addEventListener('DOMContentLoaded', () => {
+        // Cache dos elementos DOM
+        form = document.getElementById("form");
+        container = document.getElementById("container");
+        tipoRegistroSelect = document.getElementById('tipoRegistro');
+        contratoContainer = document.getElementById('contratoContainer');
+        confirmacaoDevolucao = document.getElementById('confirmacaoDevolucao');
+        confirmacaoCheckbox = document.getElementById('confirmacaoCheckbox');
+        numeroObraSelect = document.getElementById('numeroObra');
+        nomeObraInput = document.getElementById('nomeObra');
+        enderecoSelect = document.getElementById('endereco');
+        fornecedorSelect = document.getElementById('fornecedor');
+        cnpjInput = document.getElementById('cnpj');
+        conferenteInput = document.getElementById('conferente');
+        mensagemDiv = document.getElementById("mensagem");
+        enviarButton = document.getElementById("enviar");
+        novoEnvioButton = document.getElementById("novoEnvio");
+        clearObraButton = document.getElementById("clearObraButton");
+        clearFornecedorButton = document.getElementById("clearFornecedorButton");
+        addItemButton = document.getElementById("addItemButton");
+        removeAllItemsButton = document.getElementById("removeAllItemsButton");
+
+        setupEventListeners(); // Configura todos os event listeners
+
+        // Carrega dados iniciais do servidor e popula o formulário
+        mensagemDiv.innerText = "Carregando dados do formulário...";
+        enviarButton.disabled = true; // Desabilita o botão de envio enquanto carrega
+
+        google.script.run
+            .withSuccessHandler(data => {
+                // Armazena dados globalmente
+                initialServerData = data;
+                listaItens = data.itens || [];
+                allObrasData = data.obras || {};
+
+                // Popula selects principais (o texto da opção é a própria chave do objeto)
+                populateSelectFromObject(numeroObraSelect, allObrasData, "Selecione o Número da Obra");
+                populateSelectFromObject(fornecedorSelect, initialServerData.fornecedores || {}, "Selecione o Fornecedor");
+
+                // Reseta o formulário para um estado inicial limpo, usando os dados já carregados
+                // Isso garante que `addItem` use `listaItens` populada e os campos sejam limpos.
+                resetForm();
+
+                mensagemDiv.innerText = ""; // Limpa mensagem de carregamento
+                // O estado dos botões (enviar/novoEnvio) é tratado por resetForm
+            })
+            .withFailureHandler(err => {
+                console.error("Erro ao carregar dados iniciais:", err);
+                const failMessage = "Erro ao carregar dados iniciais: " + (err.message || "Falha desconhecida.");
+                mensagemDiv.innerText = failMessage;
+                alert(failMessage + " Algumas funcionalidades podem não estar disponíveis.");
+                // Mantém o botão de envio desabilitado se dados críticos falharem ao carregar
+                enviarButton.disabled = true;
+                enviarButton.classList.remove("hidden"); // Garante que o botão (desabilitado) seja visível
+                novoEnvioButton.classList.add("hidden");
+            })
+            .loadFormData();
+    });
+</script>

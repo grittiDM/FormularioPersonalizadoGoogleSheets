@@ -1,0 +1,312 @@
+<style>
+  html {
+    box-sizing: border-box;
+    background-color: #eff1f5;
+    font-family: Arial, sans-serif;
+  }
+
+  *,
+  *:before,
+  *:after {
+    box-sizing: inherit;
+  }
+
+  body {
+    padding: 20px;
+  }
+
+  fieldset {
+    margin-bottom: 20px;
+    padding: 15px;
+    border: 2px solid #4c4f69;
+    border-radius: 5px;
+    position: relative;
+    padding-bottom: 50px;
+  }
+
+  legend {
+    font-weight: bold;
+    padding: 0 10px;
+  }
+
+  /* Layout para as informações da obra e fornecedor (geral de duas colunas) */
+  .form-section-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px 20px;
+  }
+
+  /* Para itens que devem ocupar a largura total dentro de um grid */
+  .form-section-grid .full-width-item {
+    grid-column: 1 / -1;
+  }
+
+  .form-section-grid div {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .form-section-grid label {
+    margin-bottom: 5px;
+  }
+
+  .form-section-grid select,
+  .form-section-grid input[type="text"] {
+    width: 100%;
+  }
+
+  .confirmacao-devolucao {
+    display: flex;
+    flex-direction: column;
+    display: none;
+  }
+
+  .confirmacao-devolucao label {
+    margin-bottom: 5px;
+    font-weight: normal;
+  }
+
+  .checkbox-container {
+    display: flex;         /* Alinha os itens filhos (checkbox e label "Sim") em linha */
+    align-items: center;   /* Centraliza-os verticalmente */
+    gap: 4px;              /* Define um espaço de 8px ENTRE a checkbox e o texto "Sim" */
+    padding: 8px;
+    border: 1px solid #4c4f69;
+    border-radius: 4px;
+    background-color: #9ca0b0;
+    box-sizing: border-box;
+  }
+
+  .checkbox-container input[type="checkbox"] {
+    width: auto;
+    margin: 0;
+  }
+
+  .checkbox-container label {
+    margin: 0;
+    color: #eff1f5;
+    font-weight: normal;
+    cursor: pointer;
+  }
+
+  /* Layout para os itens - até 4 por linha, dinâmico */
+  .item-grid-container {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+    margin-top: 10px;
+  }
+
+  .item {
+    border: 1px solid #4c4f69;
+    padding: 10px;
+    border-radius: 5px;
+    background-color: #7c7f93;
+    color: #eff1f5;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .item h4 {
+    margin-top: 0;
+    margin-bottom: 10px;
+    border-bottom: 1px solid #9ca0b0;
+    padding-bottom: 5px;
+  }
+
+  .item label {
+    margin-top: 10px;
+    margin-bottom: 5px;
+  }
+
+  /* Estilos para os controles de quantidade dentro de um item */
+  .item .quantity-controls {
+    display: flex;
+    align-items: center; /* Alinha itens verticalmente se quebrar linha */
+    gap: 5px;          /* Espaçamento entre os botões/input */
+    flex-wrap: wrap;   /* Permite que os controles quebrem para a próxima linha */
+    /* justify-content: flex-start; /* Opcional: como alinhar na horizontal quando há espaço */
+  }
+
+  input[type="number"] {
+    width: 70px; /* Pode ser ajustado conforme necessário, um pouco menor */
+    text-align: center;
+  }
+
+  select,
+  textarea,
+  input[type="text"] {
+    padding: 8px;
+    margin-top: 5px;
+    border: 1px solid #4c4f69;
+    border-radius: 4px;
+  }
+
+  button.adjust {
+    margin: 2px;
+    padding: 5px 10px;
+    border: none;
+    background-color: #04a5e5;
+    color: #eff1f5;
+    border-radius: 3px;
+    cursor: pointer;
+  }
+
+  button.adjust:hover {
+    background-color: #1e66f5;
+  }
+
+  button.remove-item {
+    background-color: #e64553;
+    margin-top: 10px;
+    padding: 5px 10px;
+    border-radius: 3px;
+    color: #eff1f5;
+    border: none;
+    cursor: pointer;
+  }
+
+  button.remove-item:hover {
+    background-color: #d20f39;
+  }
+
+  /* Estilos para os botões de controle de itens */
+  .item-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 10px;
+  }
+
+  button.add-item {
+    background-color: #40a02b;
+    padding: 8px 15px;
+    border-radius: 4px;
+    color: #eff1f5;
+    border: none;
+    cursor: pointer;
+  }
+
+  button.add-item:hover {
+    background-color: #25703c;
+  }
+
+  button.remove-all-items {
+    background-color: #4c4f69;
+    padding: 8px 15px;
+    border-radius: 4px;
+    color: #eff1f5;
+    border: none;
+    cursor: pointer;
+  }
+
+  button.remove-all-items:hover {
+    background-color: #303457;
+  }
+
+  .form-actions {
+    margin-top: 20px;
+    display: flex;
+    justify-content: flex-start;
+    gap: 10px;
+  }
+
+  input[type="submit"],
+  button#novoEnvio {
+    background-color: #04a5e5;
+    color: #eff1f5;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+  }
+
+  input[type="submit"]:hover,
+  button#novoEnvio:hover {
+    background-color: #1e66f5;
+  }
+
+  #mensagem {
+    color: #40a02b;
+    font-weight: bold;
+    margin-top: 10px;
+  }
+
+  .hidden {
+    display: none;
+  }
+
+  .clear-button {
+    position: absolute;
+    bottom: 15px;
+    right: 15px;
+    background-color: #4c4f69;
+    color: #eff1f5;
+    padding: 8px 15px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+  }
+
+  .clear-button:hover {
+    background-color: #4c4f69;
+  }
+
+  #conferente {
+    width: 400px;
+    max-width: 100%;
+  }
+
+  /* Responsividade para telas menores */
+  @media (max-width: 1200px) {
+    .item-grid-container {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+
+  @media (max-width: 992px) {
+    .item-grid-container {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (max-width: 768px) {
+    .form-section-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .item-grid-container {
+      grid-template-columns: 1fr;
+    }
+
+    fieldset {
+      padding-bottom: 15px;
+    }
+
+    .clear-button {
+      position: static;
+      margin-top: 10px;
+      width: 100%;
+    }
+
+    .item-controls {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .item-controls button {
+      margin-bottom: 10px;
+    }
+
+    #conferente {
+      width: 100%;
+    }
+
+    .form-actions {
+      flex-direction: column;
+      align-items: stretch;
+    }
+  }
+</style>

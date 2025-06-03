@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <base target="_top">
+  <title>Conferência Mensal de Andaimes e Formas</title>
+
+  <!-- Style -->
+  <?!= include('style-form'); ?>
+</head>
+
+<body>
+  <!-- Header -->
+  <header>
+    <h2>Conferência Mensal de Andaimes e Formas</h2>
+  </header>
+
+  <!-- Form -->
+  <form id="form">
+
+    <!-- Informações da Obra -->
+    <fieldset>
+      <legend><strong>Informações da Obra</strong></legend>
+      <div class="form-section-grid">
+        <div>
+          <label>Nº da Obra:</label>
+          <select id="numeroObra" required>
+            <option value="">Selecione o Número da Obra</option>
+          </select>
+        </div>
+        <div>
+          <label>Nome da Obra:</label>
+          <input type="text" id="nomeObra" disabled>
+        </div>
+        <div class="full-width-item">
+          <label>Endereço:</label>
+          <select id="endereco" required>
+            <option value="">Selecione o Endereço</option>
+          </select>
+        </div>
+      </div>
+      <button type="button" class="clear-button" id="clearObraButton">Limpar</button>
+    </fieldset>
+
+    <!-- Informações do Fornecedor -->
+    <fieldset>
+      <legend><strong>Informações do Fornecedor</strong></legend>
+      <div class="form-section-grid">
+        <div>
+          <label>Empresa Locadora:</label>
+          <select id="fornecedor" required>
+            <option value="">Selecione o Fornecedor</option>
+          </select>
+        </div>
+        <div>
+          <label>CNPJ:</label>
+          <input type="text" id="cnpj" disabled>
+        </div>
+        <div>
+          <label>Tipo de Registro:</label>
+          <select id="tipoRegistro" required>
+            <option value="">Selecione o Tipo de Registro</option>
+            <option value="Recebimento">Recebimento</option>
+            <option value="Renovação">Renovação</option>
+            <option value="Devolução">Devolução</option>
+          </select>
+        </div>
+        <div id="contratoContainer">
+        </div>
+
+        <!-- Pergunta de confirmação de devolução final -->
+        <div id="confirmacaoDevolucao" class="confirmacao-devolucao">
+          <label>Confirma a Devolução Final?</label>
+          <div class="checkbox-container">
+            <input type="checkbox" id="confirmacaoCheckbox">
+            <label for="confirmacaoCheckbox">Sim</label>
+          </div>
+        </div>
+      </div>
+      <button type="button" class="clear-button" id="clearFornecedorButton">Limpar</button>
+    </fieldset>
+
+    <br>
+    <!-- Itens -->
+    <fieldset>
+      <legend><strong>Itens</strong></legend>
+      <div id="container" class="item-grid-container"></div>
+      <div class="item-controls">
+        <button type="button" id="addItemButton" class="add-item">+ Adicionar item</button>
+        <button type="button" id="removeAllItemsButton" class="remove-all-items">Remover todos os itens</button>
+      </div>
+    </fieldset>
+
+    <label>Conferente:</label>
+    <input type="text" id="conferente" required>
+
+    <div class="form-actions">
+      <input type="submit" id="enviar" value="Enviar">
+      <button type="button" id="novoEnvio" class="hidden">Realizar novo envio</button>
+    </div>
+  </form>
+  <div id="mensagem" style="margin-top: 20px;"></div>
+
+  <!-- Scripts -->
+  <?!= include('script-form'); ?>
+</body>
+
+</html>

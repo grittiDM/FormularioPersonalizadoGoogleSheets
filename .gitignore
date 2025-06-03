@@ -1,0 +1,24 @@
+# Arquivos de configuração contendo segredos
+.env
+config.js
+secrets.json
+client_secret_*.json # Comum para APIs do Google, como a do Google Sheets
+
+# Arquivos de log
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Dependências (geralmente reinstaladas via gerenciador de pacotes)
+node_modules/
+
+# Arquivos de build/distribuição (se aplicável ao seu projeto)
+# dist/
+# build/
+
+# Arquivos específicos de IDEs e Sistema Operacional
+.vscode/
+.idea/
+*.DS_Store
+Thumbs.db
