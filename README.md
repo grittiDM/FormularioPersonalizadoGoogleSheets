@@ -4,8 +4,6 @@
 
 > [!NOTE]
 > Este projeto é Copyright (c) 2025 Murilo Gritti. Todos os direitos reservados.
-> Embora o código seja proprietário, você tem permissão para realizar um `Fork` deste repositório e utilizá-lo como template para seus próprios projetos pessoais e não comerciais, mantendo a atribuição original.
-> Para detalhes completos sobre o uso, consulte o arquivo `LICENSE` (ou `LINCENSE.md` se ainda não renomeado) ou entre em contato com Murilo Gritti.
 
 ___
 
